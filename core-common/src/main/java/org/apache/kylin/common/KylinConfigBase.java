@@ -105,6 +105,22 @@ public abstract class KylinConfigBase implements Serializable {
         return getKylinHome() + File.separator + "spark";
     }
 
+    public static String getFlinkHome() {
+        String flinkHome = System.getenv("FLINK_HOME");
+        if (StringUtils.isNotEmpty(flinkHome)) {
+            logger.info("FLINK_HOME was set to {}", flinkHome);
+            return flinkHome;
+        }
+
+        flinkHome = System.getProperty("FLINK_HOME");
+        if (StringUtils.isNotEmpty(flinkHome)) {
+            logger.info("FLINK_HOME was set to {}", flinkHome);
+            return flinkHome;
+        }
+
+        return getKylinHome() + File.separator + "flink";
+    }
+
     public static String getTempDir() {
         return System.getProperty("java.io.tmpdir");
     }
@@ -1319,6 +1335,8 @@ public abstract class KylinConfigBase implements Serializable {
         r.put(0, "org.apache.kylin.engine.mr.MRBatchCubingEngine"); //IEngineAware.ID_MR_V1
         r.put(2, "org.apache.kylin.engine.mr.MRBatchCubingEngine2"); //IEngineAware.ID_MR_V2
         r.put(4, "org.apache.kylin.engine.spark.SparkBatchCubingEngine2"); //IEngineAware.ID_SPARK
+        r.put(5, "org.apache.kylin.engine.flink.FlinkBatchCubingEngine2"); //IEngineAware.ID_FLINK
+
         r.putAll(convertKeyToInteger(getPropertiesByPrefix("kylin.engine.provider.")));
         return r;
     }
@@ -1369,8 +1387,16 @@ public abstract class KylinConfigBase implements Serializable {
         return getPropertiesByPrefix("kylin.engine.spark-conf.");
     }
 
+    public Map<String, String> getFlinkConfigOverride() {
+        return getPropertiesByPrefix("kylin.engine.flink-conf.");
+    }
+
     public Map<String, String> getSparkConfigOverrideWithSpecificName(String configName) {
         return getPropertiesByPrefix("kylin.engine.spark-conf-" + configName + ".");
+    }
+
+    public Map<String, String> getFlinkConfigOverrideWithSpecificName(String configName) {
+        return getPropertiesByPrefix("kylin.engine.flink-conf-" + configName + ".");
     }
 
     public double getDefaultHadoopJobReducerInputMB() {
@@ -1456,6 +1482,10 @@ public abstract class KylinConfigBase implements Serializable {
         return getOptional("kylin.engine.spark.additional-jars", "");
     }
 
+    public String getFlinkAdditionalJars() {
+        return getOptional("kylin.engine.flink.additional-jars", "");
+    }
+
     public float getSparkRDDPartitionCutMB() {
         return Float.parseFloat(getOptional("kylin.engine.spark.rdd-partition-cut-mb", "10.0"));
     }
@@ -1492,6 +1522,9 @@ public abstract class KylinConfigBase implements Serializable {
         return Boolean.parseBoolean(getOptional("kylin.engine.spark-dimension-dictionary", "false"));
     }
 
+    public boolean isFlinkSanityCheckEnabled() {
+        return Boolean.parseBoolean(getOptional("kylin.engine.flink.sanity-check-enabled", FALSE));
+    }
 
     // ============================================================================
     // ENGINE.LIVY

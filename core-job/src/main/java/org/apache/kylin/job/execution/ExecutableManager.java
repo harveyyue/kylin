@@ -6,21 +6,22 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package org.apache.kylin.job.execution;
 
 import static org.apache.kylin.job.constant.ExecutableConstants.MR_JOB_ID;
 import static org.apache.kylin.job.constant.ExecutableConstants.YARN_APP_ID;
 import static org.apache.kylin.job.constant.ExecutableConstants.YARN_APP_URL;
+import static org.apache.kylin.job.constant.ExecutableConstants.FLINK_JOB_ID;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -380,7 +381,7 @@ public class ExecutableManager {
                 logger.warn("The job " + jobId + " has been discarded.");
             }
             throw new IllegalStateException(
-                "The job " + job.getId() + " has already been finished and cannot be discarded.");
+                    "The job " + job.getId() + " has already been finished and cannot be discarded.");
         }
         if (job instanceof DefaultChainedExecutable) {
             List<AbstractExecutable> tasks = ((DefaultChainedExecutable) job).getTasks();
@@ -421,11 +422,11 @@ public class ExecutableManager {
         }
 
         if (!(job.getStatus() == ExecutableState.READY
-            || job.getStatus() == ExecutableState.RUNNING)) {
+                || job.getStatus() == ExecutableState.RUNNING)) {
             logger.warn("The status of job " + jobId + " is " + job.getStatus().toString()
-                + ". It's final state and cannot be transfer to be stopped!!!");
+                    + ". It's final state and cannot be transfer to be stopped!!!");
             throw new IllegalStateException(
-                "The job " + job.getId() + " has already been finished and cannot be stopped.");
+                    "The job " + job.getId() + " has already been finished and cannot be stopped.");
         }
         if (job instanceof DefaultChainedExecutable) {
             List<AbstractExecutable> tasks = ((DefaultChainedExecutable) job).getTasks();
@@ -449,7 +450,7 @@ public class ExecutableManager {
     }
 
     public void updateJobOutput(String jobId, ExecutableState newStatus, Map<String, String> info, String output) {
-        // when 
+        // when
         if (Thread.currentThread().isInterrupted()) {
             throw new RuntimeException("Current thread is interruptted, aborting");
         }
@@ -556,10 +557,11 @@ public class ExecutableManager {
             }
         }
 
-        if (info.containsKey(YARN_APP_ID) && !StringUtils.isEmpty(config.getJobTrackingURLPattern())) {
+        if ((info.containsKey(YARN_APP_ID) || info.containsKey(FLINK_JOB_ID)) && !StringUtils.isEmpty(config.getJobTrackingURLPattern())) {
             String pattern = config.getJobTrackingURLPattern();
+            String jobId = info.containsKey(YARN_APP_ID) ? info.get(YARN_APP_ID) : info.get(FLINK_JOB_ID);
             try {
-                String newTrackingURL = String.format(Locale.ROOT, pattern, info.get(YARN_APP_ID));
+                String newTrackingURL = String.format(Locale.ROOT, pattern, jobId);
                 info.put(YARN_APP_URL, newTrackingURL);
             } catch (IllegalFormatException ife) {
                 logger.error("Illegal tracking url pattern: " + config.getJobTrackingURLPattern());

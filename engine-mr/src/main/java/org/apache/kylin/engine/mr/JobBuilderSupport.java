@@ -25,6 +25,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.Lists;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.kylin.common.KylinConfig;
 import org.apache.kylin.common.StorageURL;
 import org.apache.kylin.cube.CubeSegment;
@@ -372,10 +376,14 @@ public class JobBuilderSupport {
     }
 
     public static String getCuboidOutputPathsByLevel(String cuboidRootPath, int level) {
+        return cuboidRootPath + getCuboidLevelName(level);
+    }
+
+    public static String getCuboidLevelName(int level) {
         if (level == 0) {
-            return cuboidRootPath + LayeredCuboidFolderPrefix + PathNameCuboidBase;
+            return LayeredCuboidFolderPrefix + PathNameCuboidBase;
         } else {
-            return cuboidRootPath + LayeredCuboidFolderPrefix + level + "_cuboid";
+            return LayeredCuboidFolderPrefix + level + "_cuboid";
         }
     }
 
@@ -405,5 +413,30 @@ public class JobBuilderSupport {
         Map<String, String> param = new HashMap<>();
         param.put("path", getDumpMetadataPath(jobId));
         return new StorageURL(kylinConfig.getMetadataUrl().getIdentifier(), "hdfs", param).toString();
+    }
+
+    public static void scanFiles(String input, FileSystem fs, List<FileStatus> outputs) throws IOException {
+        Path path = new Path(input);
+        if (!fs.exists(path)) {
+            return;
+        }
+        FileStatus[] fileStatuses = fs.listStatus(path, p -> !p.getName().startsWith("_"));
+        for (FileStatus stat : fileStatuses) {
+            if (stat.isDirectory()) {
+                scanFiles(stat.getPath().toString(), fs, outputs);
+            } else {
+                outputs.add(stat);
+            }
+        }
+    }
+
+    public static long getFileSize(String input, FileSystem fs) throws IOException {
+        List<FileStatus> outputs = Lists.newArrayList();
+        scanFiles(input, fs, outputs);
+        long size = 0L;
+        for (FileStatus stat: outputs) {
+            size += stat.getLen();
+        }
+        return size;
     }
 }

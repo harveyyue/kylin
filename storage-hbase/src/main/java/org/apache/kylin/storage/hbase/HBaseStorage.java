@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ package org.apache.kylin.storage.hbase;
 
 import org.apache.kylin.common.KylinConfig;
 import org.apache.kylin.cube.CubeInstance;
+import org.apache.kylin.engine.flink.IFlinkOutput;
 import org.apache.kylin.engine.mr.IMROutput2;
 import org.apache.kylin.engine.spark.ISparkOutput;
 import org.apache.kylin.metadata.model.DataModelDesc;
@@ -31,6 +32,7 @@ import org.apache.kylin.metadata.realization.IRealization;
 import org.apache.kylin.metadata.realization.RealizationType;
 import org.apache.kylin.storage.IStorage;
 import org.apache.kylin.storage.IStorageQuery;
+import org.apache.kylin.storage.hbase.steps.HBaseFlinkOutputTransition;
 import org.apache.kylin.storage.hbase.steps.HBaseMROutput2Transition;
 import org.apache.kylin.storage.hbase.steps.HBaseSparkOutputTransition;
 
@@ -89,6 +91,8 @@ public class HBaseStorage implements IStorage {
             return (I) new HBaseMROutput2Transition();
         } else if (engineInterface == ISparkOutput.class) {
             return (I) new HBaseSparkOutputTransition();
+        } else if (engineInterface == IFlinkOutput.class) {
+            return (I) new HBaseFlinkOutputTransition();
         } else {
             throw new RuntimeException("Cannot adapt to " + engineInterface);
         }

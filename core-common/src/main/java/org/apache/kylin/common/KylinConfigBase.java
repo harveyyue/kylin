@@ -1526,6 +1526,10 @@ public abstract class KylinConfigBase implements Serializable {
         return Boolean.parseBoolean(getOptional("kylin.engine.flink.sanity-check-enabled", FALSE));
     }
 
+    public boolean isFlinkFactDistinctEnable() {
+        return Boolean.parseBoolean(getOptional("kylin.engine.flink-fact-distinct", "false"));
+    }
+
     // ============================================================================
     // ENGINE.LIVY
     // ============================================================================

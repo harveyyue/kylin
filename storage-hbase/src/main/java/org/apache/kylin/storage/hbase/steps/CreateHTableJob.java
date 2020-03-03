@@ -121,7 +121,7 @@ public class CreateHTableJob extends AbstractHadoopJob {
         CubeHTableUtil.createHTable(cubeSegment, splitKeys);
 
         // export configuration in advance to avoid connecting to hbase from spark
-        if (cubeDesc.getEngineType() == IEngineAware.ID_SPARK || cubeDesc.getEngineType() == IEngineAware.ID_FLINK){
+        if (cubeDesc.getEngineType() == IEngineAware.ID_SPARK || cubeDesc.getEngineType() == IEngineAware.ID_FLINK) {
             exportHBaseConfiguration(cubeSegment.getStorageLocationIdentifier());
         }
         return 0;

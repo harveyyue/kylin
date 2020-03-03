@@ -143,8 +143,6 @@ public class FlinkCubingByLayer extends AbstractApplication implements Serializa
         logger.info("DataSet input path : {}", inputPath);
         logger.info("DataSet output path : {}", outputPath);
 
-        FlinkUtil.setHadoopConfForCuboid(job, cubeSegment, metaUrl);
-
         int countMeasureIndex = 0;
         for (MeasureDesc measureDesc : cubeDesc.getMeasures()) {
             if (measureDesc.getFunction().isCount() == true) {
@@ -230,6 +228,7 @@ public class FlinkCubingByLayer extends AbstractApplication implements Serializa
         final String cuboidOutputPath = BatchCubingJobBuilder2.getCuboidOutputPathsByLevel(hdfsBaseLocation, level);
         final SerializableConfiguration sConf = new SerializableConfiguration(job.getConfiguration());
         FlinkUtil.setHadoopConfForCuboid(job, cubeSeg, metaUrl);
+        FlinkUtil.modifyFlinkHadoopConfiguration(job);
 
         HadoopOutputFormat<Text, Text> hadoopOF =
                 new HadoopOutputFormat<>(new SequenceFileOutputFormat<>(), job);

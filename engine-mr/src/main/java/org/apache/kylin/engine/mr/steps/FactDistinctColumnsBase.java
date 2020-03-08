@@ -75,6 +75,8 @@ public class FactDistinctColumnsBase {
 
     private String cubeName;
     private String segmentId;
+    private String metaUrl;
+    private SerializableConfiguration conf;
     private int samplingPercentage;
     private KylinConfig envConfig;
 
@@ -121,14 +123,16 @@ public class FactDistinctColumnsBase {
                                    int samplingPercentage) {
         this.cubeName = cubeName;
         this.segmentId = segmentId;
+        this.metaUrl = metaUrl;
+        this.conf = conf;
         this.samplingPercentage = samplingPercentage;
-        this.envConfig = AbstractHadoopJob.loadKylinConfigFromHdfs(conf, metaUrl);
     }
 
     public void setupMap() {
-        this.outputKey = new Text();
-        this.outputValue = new Text();
-        this.emptyText = new Text();
+        outputKey = new Text();
+        outputValue = new Text();
+        emptyText = new Text();
+        envConfig = AbstractHadoopJob.loadKylinConfigFromHdfs(conf, metaUrl);
         try (KylinConfig.SetAndUnsetThreadLocalConfig autoUnset = KylinConfig
                 .setAndUnsetThreadLocalConfig(envConfig)) {
             cube = CubeManager.getInstance(envConfig).getCube(cubeName);
@@ -350,6 +354,7 @@ public class FactDistinctColumnsBase {
 
     public void setupReduce(int taskId) throws IOException {
         this.taskId = taskId;
+        envConfig = AbstractHadoopJob.loadKylinConfigFromHdfs(conf, metaUrl);
         try (KylinConfig.SetAndUnsetThreadLocalConfig autoUnset = KylinConfig
                 .setAndUnsetThreadLocalConfig(envConfig)) {
             cube = CubeManager.getInstance(envConfig).getCube(cubeName);

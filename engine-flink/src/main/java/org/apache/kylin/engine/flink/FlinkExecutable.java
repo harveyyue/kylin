@@ -215,7 +215,7 @@ public class FlinkExecutable extends AbstractExecutable {
                 Set<String> setJars = new HashSet();
                 setJars.addAll(Arrays.asList(splitJars));
                 for (String jar : setJars) {
-                    sb.append(String.format(" -C file://%s", jar));
+                    sb.append(String.format(Locale.ROOT, " -C file://%s", jar));
                 }
             }
 

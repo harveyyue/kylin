@@ -73,6 +73,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -258,7 +259,7 @@ public class FlinkCubeHFile extends AbstractApplication implements Serializable 
             }
         }
 
-        env.execute(String.format("Convert cuboid to hfile for cube: %s, segment %s", cubeName, segmentId));
+        env.execute(String.format(Locale.ROOT, "Convert cuboid to hfile for cube: %s, segment %s", cubeName, segmentId));
 
         long size = FlinkBatchCubingJobBuilder2.getFileSize(outputPath, fs);
         logger.info("HDFS: Number of bytes written={}", size);

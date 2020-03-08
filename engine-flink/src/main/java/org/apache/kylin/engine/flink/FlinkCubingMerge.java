@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Flink application to merge cube with the "by-layer" algorithm. Only support source data from Hive; Metadata in HBase.
@@ -195,7 +196,7 @@ public class FlinkCubingMerge extends AbstractApplication implements Serializabl
                     String path = inputFolders[i];
                     CubeSegment sourceSegment = findSourceSegment(path, cubeInstance);
                     final String cuboidInputPath = FlinkBatchMergeJobBuilder2.getCuboidOutputPathsByLevel(path, level);
-                    final String sourceName = String.format("Source_%s_%s",
+                    final String sourceName = String.format(Locale.ROOT, "Source_%s_%s",
                             FlinkBatchMergeJobBuilder2.getCuboidLevelName(level), sourceSegment.getUuid());
                     DataSet<Tuple2<Text, Text>> segRdd = env.createInput(HadoopInputs.readHadoopFile(
                             new SequenceFileInputFormat(), Text.class, Text.class, cuboidInputPath)).name(sourceName);

@@ -140,7 +140,6 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         final String bytesWrittenName = "byte-writer-counter";
 
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(14);
 
         DataSet<String[]> recordDataSet = FlinkUtil.readHiveRecords(isSequenceFile, env, inputPath, hiveTable, job);
         long recordCount = recordDataSet.count();

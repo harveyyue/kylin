@@ -100,6 +100,7 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         options.addOption(OPTION_SEGMENT_ID);
         options.addOption(OPTION_STATS_SAMPLING_PERCENT);
         options.addOption(OPTION_COUNTER_PATH);
+        options.addOption(OPTION_ENABLE_OBJECT_REUSE);
     }
 
     @Override

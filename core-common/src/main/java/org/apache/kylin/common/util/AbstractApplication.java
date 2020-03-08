@@ -17,6 +17,8 @@
 */
 package org.apache.kylin.common.util;
 
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +26,9 @@ import org.apache.commons.lang3.StringUtils;
 /**
  */
 public abstract class AbstractApplication {
+
+    public static final Option OPTION_ENABLE_OBJECT_REUSE = OptionBuilder.withArgName("enableObjectReuse").hasArg()
+            .isRequired(false).withDescription("Enable object reuse").create("enableObjectReuse");
 
     protected abstract Options getOptions();
 

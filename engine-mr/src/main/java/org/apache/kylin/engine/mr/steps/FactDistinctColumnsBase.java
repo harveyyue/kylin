@@ -378,11 +378,8 @@ public class FactDistinctColumnsBase {
                     buildDictInReducer = false; // only works if this is the only reducer of a dictionary column
                 }
                 if (buildDictInReducer) {
-                    try (KylinConfig.SetAndUnsetThreadLocalConfig autoUnsetConfig = KylinConfig
-                            .setAndUnsetThreadLocalConfig(envConfig)) {
-                        builder = DictionaryGenerator.newDictionaryBuilder(col.getType());
-                        builder.init(null, 0, null);
-                    }
+                    builder = DictionaryGenerator.newDictionaryBuilder(col.getType());
+                    builder.init(null, 0, null);
                 }
                 logger.info("Reducer " + taskId + " handling column " + col + ", buildDictInReducer=" + buildDictInReducer);
             }
@@ -453,8 +450,11 @@ public class FactDistinctColumnsBase {
             }
             // dic col
             if (buildDictInReducer) {
-                Dictionary<String> dict = builder.build();
-                outputDict(col, dict, visitor);
+                try (KylinConfig.SetAndUnsetThreadLocalConfig autoUnset = KylinConfig
+                        .setAndUnsetThreadLocalConfig(envConfig)) {
+                    Dictionary<String> dict = builder.build();
+                    outputDict(col, dict, visitor);
+                }
             }
         }
     }

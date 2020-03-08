@@ -75,8 +75,6 @@ public class FactDistinctColumnsBase {
 
     private String cubeName;
     private String segmentId;
-    private String metaUrl;
-    private SerializableConfiguration conf;
     private int samplingPercentage;
     private KylinConfig envConfig;
 
@@ -123,16 +121,14 @@ public class FactDistinctColumnsBase {
                                    int samplingPercentage) {
         this.cubeName = cubeName;
         this.segmentId = segmentId;
-        this.metaUrl = metaUrl;
-        this.conf = conf;
         this.samplingPercentage = samplingPercentage;
+        this.envConfig = AbstractHadoopJob.loadKylinConfigFromHdfs(conf, metaUrl);
     }
 
     public void setupMap() {
         outputKey = new Text();
         outputValue = new Text();
         emptyText = new Text();
-        envConfig = AbstractHadoopJob.loadKylinConfigFromHdfs(conf, metaUrl);
         try (KylinConfig.SetAndUnsetThreadLocalConfig autoUnset = KylinConfig
                 .setAndUnsetThreadLocalConfig(envConfig)) {
             cube = CubeManager.getInstance(envConfig).getCube(cubeName);
@@ -354,10 +350,8 @@ public class FactDistinctColumnsBase {
 
     public void setupReduce(int taskId) throws IOException {
         this.taskId = taskId;
-        envConfig = AbstractHadoopJob.loadKylinConfigFromHdfs(conf, metaUrl);
         try (KylinConfig.SetAndUnsetThreadLocalConfig autoUnset = KylinConfig
                 .setAndUnsetThreadLocalConfig(envConfig)) {
-            logger.info("harvey " + KylinConfig.getInstanceFromEnv().toString() + " - " + KylinConfig.getInstanceFromEnv().getCachedDictionaryMaxEntrySize());
             cube = CubeManager.getInstance(envConfig).getCube(cubeName);
             cubeDesc = cube.getDescriptor();
             reducerMapping = new FactDistinctColumnsReducerMapping(cube);
@@ -384,8 +378,11 @@ public class FactDistinctColumnsBase {
                     buildDictInReducer = false; // only works if this is the only reducer of a dictionary column
                 }
                 if (buildDictInReducer) {
-                    builder = DictionaryGenerator.newDictionaryBuilder(col.getType());
-                    builder.init(null, 0, null);
+                    try (KylinConfig.SetAndUnsetThreadLocalConfig autoUnsetConfig = KylinConfig
+                            .setAndUnsetThreadLocalConfig(envConfig)) {
+                        builder = DictionaryGenerator.newDictionaryBuilder(col.getType());
+                        builder.init(null, 0, null);
+                    }
                 }
                 logger.info("Reducer " + taskId + " handling column " + col + ", buildDictInReducer=" + buildDictInReducer);
             }

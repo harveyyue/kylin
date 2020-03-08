@@ -357,6 +357,7 @@ public class FactDistinctColumnsBase {
         envConfig = AbstractHadoopJob.loadKylinConfigFromHdfs(conf, metaUrl);
         try (KylinConfig.SetAndUnsetThreadLocalConfig autoUnset = KylinConfig
                 .setAndUnsetThreadLocalConfig(envConfig)) {
+            logger.info("harvey " + KylinConfig.getInstanceFromEnv().toString() + " - " + KylinConfig.getInstanceFromEnv().getCachedDictionaryMaxEntrySize());
             cube = CubeManager.getInstance(envConfig).getCube(cubeName);
             cubeDesc = cube.getDescriptor();
             reducerMapping = new FactDistinctColumnsReducerMapping(cube);

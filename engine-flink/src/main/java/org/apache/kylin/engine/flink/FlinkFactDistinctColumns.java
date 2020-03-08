@@ -138,11 +138,11 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
 
         // calculate source record bytes size
         final String bytesWrittenName = "byte-writer-counter";
+        final String recordCounterName = "record-counter";
 
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
         DataSet<String[]> recordDataSet = FlinkUtil.readHiveRecords(isSequenceFile, env, inputPath, hiveTable, job);
-        long recordCount = recordDataSet.count();
 
         // read record from flat table
         // output:
@@ -150,7 +150,8 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         //   2, field value of dict col
         //   3, min/max field value of not dict col
         DataSet<Tuple2<SelfDefineSortableKey, Text>> flatOutputDataSet = recordDataSet.mapPartition(
-                new FlatOutputMapPartitionFunction(sConf, cubeName, segmentId, metaUrl, samplingPercent, bytesWrittenName));
+                new FlatOutputMapPartitionFunction(sConf, cubeName, segmentId, metaUrl, samplingPercent,
+                        bytesWrittenName, recordCounterName));
 
         // repartition data, make each reducer handle only one col data or the statistic data
         // multiple output result
@@ -182,7 +183,9 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
 
         JobExecutionResult jobExecutionResult =
                 env.execute("Fact distinct columns for:" + cubeName + " segment " + segmentId);
-        Long bytesWritten = (Long) jobExecutionResult.getAccumulatorResult(bytesWrittenName);
+        Map<String, Object> accumulatorResults = jobExecutionResult.getAllAccumulatorResults();
+        Long recordCount = (Long) accumulatorResults.get(recordCounterName);
+        Long bytesWritten = (Long) accumulatorResults.get(bytesWrittenName);
         logger.info("Map input records={}", recordCount);
         logger.info("HDFS Read: {} HDFS Write", bytesWritten);
 
@@ -203,25 +206,30 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         private SerializableConfiguration conf;
         private int samplingPercentage;
         private String bytesWrittenName;
+        private String recordCounterName;
         private LongCounter bytesWrittenCounter;
+        private LongCounter recordCounter;
 
         private FactDistinctColumnsBase base;
 
         public FlatOutputMapPartitionFunction(SerializableConfiguration conf, String cubeName, String segmentId,
-                                              String metaUrl, int samplingPercentage, String bytesWrittenName) {
+                                              String metaUrl, int samplingPercentage, String bytesWrittenName,
+                                              String recordCounterName) {
             this.cubeName = cubeName;
             this.segmentId = segmentId;
             this.metaUrl = metaUrl;
             this.conf = conf;
             this.samplingPercentage = samplingPercentage;
             this.bytesWrittenName = bytesWrittenName;
+            this.recordCounterName = recordCounterName;
             this.bytesWrittenCounter = new LongCounter();
+            this.recordCounter = new LongCounter();
         }
 
         @Override
         public void open(Configuration parameters) throws Exception {
             getRuntimeContext().addAccumulator(bytesWrittenName, bytesWrittenCounter);
-
+            getRuntimeContext().addAccumulator(recordCounterName, recordCounter);
             base = new FactDistinctColumnsBase(cubeName, segmentId, metaUrl, conf, samplingPercentage);
             base.setupMap();
         }
@@ -237,6 +245,7 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
 
             for (String[] row : values) {
                 bytesWrittenCounter.add(base.countSizeInBytes(row));
+                recordCounter.add(1L);
                 base.map(row, visitor);
             }
 

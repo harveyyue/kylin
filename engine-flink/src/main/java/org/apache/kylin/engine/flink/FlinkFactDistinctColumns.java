@@ -130,9 +130,9 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         final CubeInstance cubeInstance = CubeManager.getInstance(envConfig).getCube(cubeName);
 
         final FactDistinctColumnsReducerMapping reducerMapping = new FactDistinctColumnsReducerMapping(cubeInstance);
+        final int totalReducer = reducerMapping.getTotalReducerNum();
 
-        logger.info("RDD Output path: {}", outputPath);
-        logger.info("getTotalReducerNum: {}", reducerMapping.getTotalReducerNum());
+        logger.info("getTotalReducerNum: {}", totalReducer);
         logger.info("getCuboidRowCounterReducerNum: {}", reducerMapping.getCuboidRowCounterReducerNum());
         logger.info("counter path {}", counterPath);
 
@@ -156,14 +156,18 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
                         bytesWrittenName, recordCounterName));
 
         // repartition data, make each reducer handle only one col data or the statistic data
+        DataSet<Tuple2<SelfDefineSortableKey, Text>> partitionDataSet = flatOutputDataSet
+                .partitionCustom(new FactDistinctColumnPartitioner(cubeName, metaUrl, sConf), 0)
+                .setParallelism(totalReducer);
+
         // multiple output result
         // 1, CFG_OUTPUT_COLUMN: field values of dict col, which will not be built in reducer, like globalDictCol
         // 2, CFG_OUTPUT_DICT: dictionary object built in reducer
         // 3, CFG_OUTPUT_STATISTICS: cube statistic: hll of cuboids ...
         // 4, CFG_OUTPUT_PARTITION: dimension value range(min,max)
-        DataSet<Tuple2<String, Tuple3<Writable, Writable, String>>> outputDataSet = flatOutputDataSet
-                .partitionCustom(new FactDistinctColumnPartitioner(cubeName, metaUrl, sConf), 0)
-                .mapPartition(new MultiOutputMapPartitionFunction(sConf, cubeName, segmentId, metaUrl, samplingPercent));
+        DataSet<Tuple2<String, Tuple3<Writable, Writable, String>>> outputDataSet = partitionDataSet
+                .mapPartition(new MultiOutputMapPartitionFunction(sConf, cubeName, segmentId, metaUrl, samplingPercent))
+                .setParallelism(totalReducer);
 
         // make each reducer output to respective dir
         MultipleOutputs.addNamedOutput(job, BatchConstants.CFG_OUTPUT_COLUMN, SequenceFileOutputFormat.class,

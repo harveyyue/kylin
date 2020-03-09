@@ -32,6 +32,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.BytesWritable;
@@ -120,6 +121,7 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         int samplingPercent = Integer.parseInt(optionsHelper.getOptionValue(OPTION_STATS_SAMPLING_PERCENT));
 
         Job job = Job.getInstance();
+        FileSystem fs = HadoopUtil.getWorkingFileSystem(job.getConfiguration());
         HadoopUtil.deletePath(job.getConfiguration(), new Path(outputPath));
 
         final SerializableConfiguration sConf = new SerializableConfiguration(job.getConfiguration());
@@ -188,6 +190,7 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         Long bytesWritten = (Long) accumulatorResults.get(bytesWrittenName);
         logger.info("Map input records={}", recordCount);
         logger.info("HDFS Read: {} HDFS Write", bytesWritten);
+        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath, fs));
 
         Map<String, String> counterMap = Maps.newHashMap();
         counterMap.put(ExecutableConstants.SOURCE_RECORDS_COUNT, String.valueOf(recordCount));

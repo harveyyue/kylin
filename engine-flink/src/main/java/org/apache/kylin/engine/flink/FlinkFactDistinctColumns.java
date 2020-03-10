@@ -53,6 +53,7 @@ import org.apache.kylin.common.util.BytesUtil;
 import org.apache.kylin.common.util.HadoopUtil;
 import org.apache.kylin.common.util.OptionsHelper;
 import org.apache.kylin.common.util.Pair;
+import org.apache.kylin.common.util.StringUtil;
 import org.apache.kylin.cube.CubeInstance;
 import org.apache.kylin.cube.CubeManager;
 import org.apache.kylin.engine.mr.common.AbstractHadoopJob;
@@ -119,6 +120,7 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         String outputPath = optionsHelper.getOptionValue(OPTION_OUTPUT_PATH);
         String counterPath = optionsHelper.getOptionValue(OPTION_COUNTER_PATH);
         int samplingPercent = Integer.parseInt(optionsHelper.getOptionValue(OPTION_STATS_SAMPLING_PERCENT));
+        String enableObjectReuseOptValue = optionsHelper.getOptionValue(OPTION_ENABLE_OBJECT_REUSE);
 
         Job job = Job.getInstance();
         FileSystem fs = HadoopUtil.getWorkingFileSystem(job.getConfiguration());
@@ -143,6 +145,10 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         final String recordCounterName = "record-counter";
 
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+        if (!StringUtil.isEmpty(enableObjectReuseOptValue) &&
+                enableObjectReuseOptValue.equalsIgnoreCase("true")) {
+            env.getConfig().enableObjectReuse();
+        }
 
         DataSet<String[]> recordDataSet = FlinkUtil.readHiveRecords(isSequenceFile, env, inputPath, hiveTable, job);
 

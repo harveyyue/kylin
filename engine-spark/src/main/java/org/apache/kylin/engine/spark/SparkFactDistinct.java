@@ -60,6 +60,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
+import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.util.LongAccumulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,6 +156,7 @@ public class SparkFactDistinct extends AbstractApplication implements Serializab
 
             boolean isSequenceFile = JoinedFlatTable.SEQUENCEFILE
                     .equalsIgnoreCase(envConfig.getFlatTableStorageFormat());
+            StorageLevel storageLevel = StorageLevel.fromString(envConfig.getSparkStorageLevel());
 
             // calculate source record bytes size
             final LongAccumulator bytesWritten = sc.sc().longAccumulator();
@@ -167,7 +169,8 @@ public class SparkFactDistinct extends AbstractApplication implements Serializab
             //   2, field value of dict col
             //   3, min/max field value of not dict col
             JavaPairRDD<SelfDefineSortableKey, Text> flatOutputRDD = recordRDD.mapPartitionsToPair(
-                    new FlatOutputFunction(cubeName, segmentId, metaUrl, sConf, samplingPercent, bytesWritten));
+                    new FlatOutputFunction(cubeName, segmentId, metaUrl, sConf, samplingPercent, bytesWritten))
+                    .persist(storageLevel);
 
             // repartition data, make each reducer handle only one col data or the statistic data
             JavaPairRDD<SelfDefineSortableKey, Text> aggredRDD = flatOutputRDD.repartitionAndSortWithinPartitions(
@@ -213,6 +216,7 @@ public class SparkFactDistinct extends AbstractApplication implements Serializab
             HadoopUtil.writeToSequenceFile(sc.hadoopConfiguration(), counterPath, counterMap);
 
             HadoopUtil.deleteHDFSMeta(metaUrl);
+            flatOutputRDD.unpersist(false);
         }
     }
 

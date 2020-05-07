@@ -279,8 +279,7 @@ public class FlinkCubeHFile extends AbstractApplication implements Serializable 
         @Override
         public int partition(RowKeyWritable key, int numPartitions) {
             int pos = Collections.binarySearch(this.keys, key) + 1;
-            pos = (pos < 0 ? -pos : pos) % numPartitions;
-            return pos;
+            return pos < 0 ? -pos : pos;
         }
 
         @Override

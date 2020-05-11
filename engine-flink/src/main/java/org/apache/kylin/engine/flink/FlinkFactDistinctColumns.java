@@ -123,7 +123,6 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         String enableObjectReuseOptValue = optionsHelper.getOptionValue(OPTION_ENABLE_OBJECT_REUSE);
 
         Job job = Job.getInstance();
-        FileSystem fs = HadoopUtil.getWorkingFileSystem(job.getConfiguration());
         HadoopUtil.deletePath(job.getConfiguration(), new Path(outputPath));
 
         final SerializableConfiguration sConf = new SerializableConfiguration(job.getConfiguration());
@@ -200,7 +199,8 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         Long bytesWritten = (Long) accumulatorResults.get(bytesWrittenName);
         logger.info("Map input records={}", recordCount);
         logger.info("HDFS Read: {} HDFS Write", bytesWritten);
-        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath, fs));
+        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath,
+                HadoopUtil.getWorkingFileSystem(job.getConfiguration())));
 
         Map<String, String> counterMap = Maps.newHashMap();
         counterMap.put(ExecutableConstants.SOURCE_RECORDS_COUNT, String.valueOf(recordCount));

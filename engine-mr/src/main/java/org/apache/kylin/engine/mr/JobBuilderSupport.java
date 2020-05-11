@@ -6,15 +6,15 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package org.apache.kylin.engine.mr;
 
@@ -31,6 +31,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.kylin.common.KylinConfig;
 import org.apache.kylin.common.StorageURL;
+import org.apache.kylin.common.util.HadoopUtil;
 import org.apache.kylin.cube.CubeSegment;
 import org.apache.kylin.cube.cuboid.CuboidModeEnum;
 import org.apache.kylin.cube.model.CubeDesc;
@@ -151,7 +152,7 @@ public class JobBuilderSupport {
     }
 
     public MapReduceExecutable createCalculateStatsFromBaseCuboid(String inputPath, String outputPath,
-            CuboidModeEnum cuboidMode) {
+                                                                  CuboidModeEnum cuboidMode) {
         MapReduceExecutable result = new MapReduceExecutable();
         result.setName(ExecutableConstants.STEP_NAME_CALCULATE_STATS_FROM_BASE_CUBOID);
         result.setMapReduceJobClass(CalculateStatsFromBaseCuboidJob.class);
@@ -430,11 +431,11 @@ public class JobBuilderSupport {
         }
     }
 
-    public static long getFileSize(String input, FileSystem fs) throws IOException {
+    public static long getFileSize(String input) throws IOException {
         List<FileStatus> outputs = Lists.newArrayList();
-        scanFiles(input, fs, outputs);
+        scanFiles(input, HadoopUtil.getWorkingFileSystem(), outputs);
         long size = 0L;
-        for (FileStatus stat: outputs) {
+        for (FileStatus stat : outputs) {
             size += stat.getLen();
         }
         return size;

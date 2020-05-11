@@ -198,8 +198,7 @@ public class FlinkFactDistinctColumns extends AbstractApplication {
         Long bytesWritten = (Long) accumulatorResults.get(bytesWrittenName);
         logger.info("Map input records={}", recordCount);
         logger.info("HDFS Read: {} HDFS Write", bytesWritten);
-        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath,
-                HadoopUtil.getWorkingFileSystem(job.getConfiguration())));
+        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath));
 
         Map<String, String> counterMap = Maps.newHashMap();
         counterMap.put(ExecutableConstants.SOURCE_RECORDS_COUNT, String.valueOf(recordCount));

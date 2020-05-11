@@ -211,8 +211,7 @@ public class FlinkCubingByLayer extends AbstractApplication implements Serializa
 
         env.execute("Cubing for : " + cubeName + " segment " + segmentId);
         logger.info("Finished on calculating all level cuboids.");
-        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath,
-                HadoopUtil.getWorkingFileSystem()));
+        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath));
     }
 
     private void sinkToHDFS(

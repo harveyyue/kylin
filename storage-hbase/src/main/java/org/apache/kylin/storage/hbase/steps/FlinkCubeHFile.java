@@ -261,7 +261,7 @@ public class FlinkCubeHFile extends AbstractApplication implements Serializable 
 
         env.execute(String.format(Locale.ROOT, "Convert cuboid to hfile for cube: %s, segment %s", cubeName, segmentId));
 
-        long size = FlinkBatchCubingJobBuilder2.getFileSize(outputPath, fs);
+        long size = FlinkBatchCubingJobBuilder2.getFileSize(outputPath);
         logger.info("HDFS: Number of bytes written={}", size);
         Map<String, String> counterMap = Maps.newHashMap();
         counterMap.put(ExecutableConstants.HDFS_BYTES_WRITTEN, String.valueOf(size));

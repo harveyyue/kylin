@@ -20,6 +20,7 @@ package org.apache.kylin.engine.flink;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.FallbackKey;
 import org.apache.flink.configuration.JobManagerOptions;
+import org.apache.flink.configuration.MemorySize;
 import org.apache.flink.configuration.TaskManagerOptions;
 
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public class FlinkOnYarnConfigMapping {
         }
 
         //mapping task manager heap size -> -ytm
-        ConfigOption<String> tmHeapSizeOption = TaskManagerOptions.TASK_MANAGER_HEAP_MEMORY;
+        ConfigOption<MemorySize> tmHeapSizeOption = TaskManagerOptions.TOTAL_PROCESS_MEMORY;
         flinkOnYarnConfigMap.put(tmHeapSizeOption.key(), "-ytm");
         if (tmHeapSizeOption.hasFallbackKeys()) {
             Iterator<FallbackKey> deprecatedKeyIterator = tmHeapSizeOption.fallbackKeys().iterator();
@@ -63,15 +64,6 @@ public class FlinkOnYarnConfigMapping {
             Iterator<FallbackKey> deprecatedKeyIterator = taskSlotNumOption.fallbackKeys().iterator();
             while (deprecatedKeyIterator.hasNext()) {
                 flinkOnYarnConfigMap.put(deprecatedKeyIterator.next().getKey(), "-ys");
-            }
-        }
-
-        ConfigOption<Boolean> tmMemoryPreallocate = TaskManagerOptions.MANAGED_MEMORY_PRE_ALLOCATE;
-        flinkOnYarnConfigMap.put(tmMemoryPreallocate.key(), "-yD taskmanager.memory.preallocate");
-        if (taskSlotNumOption.hasFallbackKeys()) {
-            Iterator<FallbackKey> deprecatedKeyIterator = tmMemoryPreallocate.fallbackKeys().iterator();
-            while (deprecatedKeyIterator.hasNext()) {
-                flinkOnYarnConfigMap.put(deprecatedKeyIterator.next().getKey(), "-yD taskmanager.memory.preallocate");
             }
         }
 

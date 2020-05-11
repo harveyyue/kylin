@@ -31,7 +31,6 @@ import org.apache.flink.api.java.hadoop.mapreduce.HadoopOutputFormat;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -130,7 +129,6 @@ public class FlinkCubingByLayer extends AbstractApplication implements Serializa
         }
 
         Job job = Job.getInstance();
-        FileSystem fs = HadoopUtil.getWorkingFileSystem(job.getConfiguration());
         HadoopUtil.deletePath(job.getConfiguration(), new Path(outputPath));
 
         final SerializableConfiguration sConf = new SerializableConfiguration(job.getConfiguration());
@@ -213,7 +211,8 @@ public class FlinkCubingByLayer extends AbstractApplication implements Serializa
 
         env.execute("Cubing for : " + cubeName + " segment " + segmentId);
         logger.info("Finished on calculating all level cuboids.");
-        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath, fs));
+        logger.info("HDFS: Number of bytes written=" + FlinkBatchCubingJobBuilder2.getFileSize(outputPath,
+                HadoopUtil.getWorkingFileSystem()));
     }
 
     private void sinkToHDFS(
